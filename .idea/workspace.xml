@@ -5,14 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d072180d-ed36-4a60-b754-7bf4a2711fc6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/HotelCase.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/db.connection.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/read_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,6 +46,12 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\LENOVO\PycharmProjects\PythonProject\data" />
+      <recent name="C:\Users\LENOVO\PycharmProjects\PythonProject\src" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -69,7 +68,7 @@
       <option name="presentableId" value="Default" />
       <updated>1752373201987</updated>
       <workItem from="1752373203026" duration="1858000" />
-      <workItem from="1752525911413" duration="1311000" />
+      <workItem from="1752525911413" duration="1648000" />
     </task>
     <servers />
   </component>
