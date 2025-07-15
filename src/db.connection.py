@@ -47,12 +47,12 @@ def migrar_excel_para_mysql():
         print("✔ Arquivo Excel carregado com sucesso!")
 
     except FileNotFoundError:
-        print(f"🚨 ERRO: O arquivo '{excel_file_name}' não foi encontrado na pasta '{script_dir}'.")
+        print(f"ERRO: O arquivo '{excel_file_name}' não foi encontrado na pasta '{script_dir}'.")
         print("Por favor, verifique se o nome do arquivo está correto e se ele está na mesma pasta do script.")
         return  # Encerra a função se o arquivo não for encontrado
 
     except Exception as e:
-        print(f"🚨 ERRO inesperado ao ler o arquivo Excel: {e}")
+        print(f"ERRO inesperado ao ler o arquivo Excel: {e}")
         return
 
     # --- 3. PREPARAR O DATAFRAME ---
@@ -73,7 +73,7 @@ def migrar_excel_para_mysql():
         print("Colunas que serão inseridas:", df.columns.tolist())
 
     except Exception as e:
-        print(f"🚨 ERRO ao preparar os dados do DataFrame: {e}")
+        print(f"ERRO ao preparar os dados do DataFrame: {e}")
         return
 
     # --- 4. CONECTAR AO MYSQL E INSERIR DADOS ---
@@ -97,11 +97,11 @@ def migrar_excel_para_mysql():
             index=False  # Não insere o índice do DataFrame como uma coluna.
         )
         print("----------------------------------------------------------------")
-        print(f"🎉 SUCESSO! {len(df)} linhas foram inseridas na tabela '{db_table_name}'.")
+        print(f"SUCESSO! {len(df)} linhas foram inseridas na tabela '{db_table_name}'.")
         print("----------------------------------------------------------------")
 
     except Exception as e:
-        print(f"🚨 ERRO durante a conexão ou inserção no MySQL: {e}")
+        print(f"ERRO durante a conexão ou inserção no MySQL: {e}")
 
 
 # Esta é uma boa prática em Python para garantir que o script só será executado
