@@ -1,80 +1,110 @@
+# -*- coding: utf-8 -*-
+"""
+Script para migrar dados de um arquivo Excel para uma tabela em um banco de dados MySQL.
+- Carrega os dados do Excel.
+- Limpa e prepara os dados (renomeia colunas, ajusta tipos).
+- Conecta ao MySQL e insere os dados na tabela.
+"""
+
+import os
 import pandas as pd
 from sqlalchemy import create_engine
-import os
+from urllib.parse import quote_plus  # Para tratar senhas com caracteres especiais
 
-# --- 1. CONFIGURAÇÕES ---
-# Coloque aqui as informações de conexão com o seu banco de dados MySQL.
-# É uma boa prática não deixar senhas diretamente no código em projetos reais,
-# mas para este script de migração, faremos de forma direta.
-db_user = "root"  # Ex: "root"
-db_password = "MySQL_@0756"
-db_host = "localhost"  # Geralmente é "localhost" ou "127.0.0.1"
-db_port = "3306"  # Porta padrão do MySQL
-db_name = "reservas"  # O nome do banco de dados que você criou
 
-# --- 2. CARREGAR OS DADOS DO EXCEL ---
-# Como o arquivo está no diretório do projeto, podemos criar o caminho para ele.
-# Substitua 'nome_do_seu_arquivo.xlsx' pelo nome real do seu arquivo.
-try:
-    file_name = "_Case Hotel (1).xlsx"
-    # Pega o caminho do diretório onde o script está sendo executado
-    project_directory = os.path.dirname(os.path.abspath(__file__))
-    excel_path = os.path.join(project_directory, file_name)
+def migrar_excel_para_mysql():
+    """
+    Função principal que executa todo o processo de migração.
+    """
+    # --- 1. CONFIGURAÇÕES ---
+    # Altere os valores abaixo com suas informações.
 
-    print(f"Tentando carregar o arquivo de: {excel_path}")
-    df = pd.read_excel(excel_path)
-    print("Arquivo Excel carregado com sucesso!")
+    # Configurações do Banco de Dados
+    db_user = "root"
+    # Sua senha pode ter caracteres especiais. O 'quote_plus' cuidará disso.
+    db_password = "MySQL_@0756"
+    db_host = "localhost"
+    db_port = "3306"
+    db_name = "reservas"
+    db_table_name = "reservas_hoteis"
 
-except FileNotFoundError:
-    print(f"ERRO: O arquivo '{file_name}' não foi encontrado no diretório do projeto.")
-    exit()  # Encerra o script se o arquivo não for encontrado
+    # Configuração do Arquivo Excel
+    excel_file_name = "_Case Hotel (1).xlsx"
+    # Assumimos que o cabeçalho está na primeira linha do Excel (índice 0).
+    # Se estiver em outra linha, ajuste este número.
+    excel_header_row = 0
 
-# --- 3. PREPARAR O DATAFRAME PARA O MYSQL ---
-# É crucial que os nomes das colunas no DataFrame sejam idênticos aos da tabela no MySQL.
-# Vamos fazer alguns ajustes que identificamos na análise anterior.
+    # --- 2. CARREGAR DADOS DO EXCEL ---
+    print(">>> Iniciando Etapa 2: Carregar dados do Excel...")
+    try:
+        # Pega o caminho do diretório onde este script está salvo
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        excel_path = os.path.join(script_dir, excel_file_name)
 
-# Dicionário para renomear as colunas (de 'nome_no_excel' para 'nome_no_mysql')
-colunas_para_renomear = {
-    'país': 'pais'  # Remove o acento para corresponder à coluna do MySQL
-    # Adicione outras colunas aqui se os nomes forem diferentes.
-}
+        print(f"Carregando arquivo: {excel_path}")
+        # Para ler a SEGUNDA aba do arquivo, usamos o índice 1 (sheet_name=1)
+        df = pd.read_excel(excel_path, sheet_name=1, header=excel_header_row)
+        print("✔ Arquivo Excel carregado com sucesso!")
 
-df.rename(columns=colunas_para_renomear, inplace=True)
+    except FileNotFoundError:
+        print(f"🚨 ERRO: O arquivo '{excel_file_name}' não foi encontrado na pasta '{script_dir}'.")
+        print("Por favor, verifique se o nome do arquivo está correto e se ele está na mesma pasta do script.")
+        return  # Encerra a função se o arquivo não for encontrado
 
-# O Pandas pode ler a coluna 'agencia_turismo' com valores vazios (NaN) como float.
-# Se a coluna no MySQL for INT, precisamos converter e tratar os NaNs.
-# Vamos preencher os valores vazios (NaN) com 0 e depois converter para inteiro.
-# Se você quiser manter os valores vazios como NULL no banco, a abordagem é outra.
-# Por simplicidade, vamos usar 0.
-if 'agencia_turismo' in df.columns:
-    df['agencia_turismo'] = df['agencia_turismo'].fillna(0).astype(int)
+    except Exception as e:
+        print(f"🚨 ERRO inesperado ao ler o arquivo Excel: {e}")
+        return
 
-print("Colunas do DataFrame ajustadas para o padrão do MySQL.")
-print("Colunas atuais:", df.columns.tolist())
+    # --- 3. PREPARAR O DATAFRAME ---
+    print("\n>>> Iniciando Etapa 3: Preparar os dados...")
+    try:
+        # Renomeia colunas para corresponder à tabela do banco de dados
+        colunas_para_renomear = {
+            'país': 'pais'  # Remove o acento
+        }
+        df.rename(columns=colunas_para_renomear, inplace=True)
 
-# --- 4. CONECTAR AO BANCO DE DADOS E INSERIR OS DADOS ---
-try:
-    # A string de conexão informa ao SQLAlchemy como se conectar ao banco.
-    # O formato é: "mysql+mysqlconnector://usuario:senha@host:porta/database"
-    connection_string = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        # Trata a coluna 'agencia_turismo': preenche valores vazios (NaN) com 0 e converte para inteiro.
+        if 'agencia_turismo' in df.columns:
+            df['agencia_turismo'] = df['agencia_turismo'].fillna(0).astype(int)
 
-    # Cria o "motor" de conexão
-    engine = create_engine(connection_string)
+        print("✔ Dados preparados para o banco de dados.")
+        # Mostra as colunas para verificação final
+        print("Colunas que serão inseridas:", df.columns.tolist())
 
-    print("Conexão com o MySQL estabelecida com sucesso!")
+    except Exception as e:
+        print(f"🚨 ERRO ao preparar os dados do DataFrame: {e}")
+        return
 
-    # Agora, a "mágica" acontece. O método to_sql do pandas envia o DataFrame para o SQL.
-    # - 'reservas_hoteis': Nome da tabela que você criou no MySQL.
-    # - con=engine: A conexão que acabamos de criar.
-    # - if_exists='append': Se a tabela já tiver dados, ele adiciona os novos no final.
-    #   Outras opções: 'replace' (apaga a tabela e cria de novo) ou 'fail' (dá erro).
-    # - index=False: Para não criar uma coluna "index" do pandas dentro da sua tabela SQL.
-    df.to_sql('reservas_hoteis', con=engine, if_exists='append', index=False)
+    # --- 4. CONECTAR AO MYSQL E INSERIR DADOS ---
+    print("\n>>> Iniciando Etapa 4: Conectar ao MySQL e inserir dados...")
+    try:
+        # Codifica a senha para evitar erros com caracteres especiais (como @, #, $)
+        encoded_password = quote_plus(db_password)
 
-    print("----------------------------------------------------------")
-    print(f"SUCESSO! Os dados foram inseridos na tabela 'reservas_hoteis'.")
-    print(f"Total de {len(df)} linhas inseridas.")
-    print("----------------------------------------------------------")
+        # Cria a string de conexão segura
+        connection_string = f"mysql+mysqlconnector://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}"
 
-except Exception as e:
-    print(f"Ocorreu um erro durante a conexão ou inserção no MySQL: {e}")
+        # Cria o "motor" de conexão do SQLAlchemy
+        engine = create_engine(connection_string)
+
+        print("Conectando ao banco de dados...")
+        # Insere os dados do DataFrame na tabela do MySQL
+        df.to_sql(
+            name=db_table_name,
+            con=engine,
+            if_exists='append',  # Adiciona os dados aos existentes. Use 'replace' para substituir.
+            index=False  # Não insere o índice do DataFrame como uma coluna.
+        )
+        print("----------------------------------------------------------------")
+        print(f"🎉 SUCESSO! {len(df)} linhas foram inseridas na tabela '{db_table_name}'.")
+        print("----------------------------------------------------------------")
+
+    except Exception as e:
+        print(f"🚨 ERRO durante a conexão ou inserção no MySQL: {e}")
+
+
+# Esta é uma boa prática em Python para garantir que o script só será executado
+# quando você rodar este arquivo diretamente.
+if __name__ == "__main__":
+    migrar_excel_para_mysql()
